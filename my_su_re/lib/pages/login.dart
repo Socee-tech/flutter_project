@@ -1,8 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'RetailerDashboard.dart';
-import 'supplierDashboard.dart';
 import 'signup.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -15,44 +12,41 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
-  Future<void> _login() async {
-    if (_formKey.currentState!.validate()) {
-      try {
-        // Firebase Authentication
-        UserCredential userCredential = await FirebaseAuth.instance
-            .signInWithEmailAndPassword(
-                email: _emailController.text.trim(),
-                password: _passwordController.text.trim());
+String _getFriendlyErrorMessage(String code) {
+  switch (code) {
+    case 'user-not-found':
+      return 'No user found with that email.';
+    case 'wrong-password':
+      return 'Incorrect password. Please try again.';
+    case 'invalid-email':
+      return 'That email address is invalid.';
+    case 'user-disabled':
+      return 'This account has been disabled.';
+    case 'too-many-requests':
+      return 'Too many login attempts. Try again later.';
+    case 'network-request-failed':
+      return 'No internet connection. Please check your network.';
+    default:
+      return 'Login failed. Please try again.';
+  }
+}
 
-        String uid = userCredential.user!.uid;
-
-        // Fetch user role from Firestore
-        DocumentSnapshot userDoc =
-            await FirebaseFirestore.instance.collection('users').doc(uid).get();
-
-        if (userDoc.exists) {
-          String role = userDoc['role'];
-          if (role == 'retailer') {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (_) => RetailerApp()),
-            );
-          } else if (role == 'supplier') {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (_) => SupplierDashboard(supplierId: uid)),
-            );
-          } else {
-            _showError("Unknown user role.");
-          }
-        } else {
-          _showError("User record not found in Firestore.");
-        }
-      } on FirebaseAuthException catch (e) {
-        _showError(e.message ?? "Login failed");
-      }
+Future<void> _login() async {
+  if (_formKey.currentState!.validate()) {
+    try {
+      await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: _emailController.text.trim(),
+        password: _passwordController.text.trim(),
+      );
+    } on FirebaseAuthException catch (e) {
+      final errorMessage = _getFriendlyErrorMessage(e.code);
+      _showError(errorMessage);
+    } catch (e) {
+      _showError("Something went wrong. Please try again.");
     }
   }
+}
+
 
   void _showError(String message) {
     ScaffoldMessenger.of(context)

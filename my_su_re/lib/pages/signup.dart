@@ -2,14 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'login.dart';
-
+import '../main.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
   runApp(MyApp());
 }
+
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -33,9 +33,41 @@ class _SignupScreenState extends State<SignupScreen> {
   final TextEditingController _passwordController = TextEditingController();
 
   String _selectedRole = 'retailer'; // default
+  bool _isLoading = false; // Track loading state
+
+  String _getFriendlyErrorMessage(String code) {
+    switch (code) {
+      case 'user-not-found':
+        return 'No user found with that email.';
+      case 'wrong-password':
+        return 'Incorrect password. Please try again.';
+      case 'invalid-email':
+        return 'That email address is invalid.';
+      case 'user-disabled':
+        return 'This account has been disabled.';
+      case 'too-many-requests':
+        return 'Too many login attempts. Try again later.';
+      case 'network-request-failed':
+        return 'No internet connection. Please check your network.';
+      case 'email-already-in-use':
+        return 'An account already exists with that email.';
+      case 'weak-password':
+        return 'The password is too weak.';
+      default:
+        return 'Signup failed. Please try again.';
+    }
+  }
+
+  void _showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+  }
 
   Future<void> _signup() async {
     if (_formKey.currentState!.validate()) {
+      setState(() {
+        _isLoading = true; // Show spinner
+      });
+
       try {
         // Create user in Firebase Auth
         UserCredential userCredential = await FirebaseAuth.instance
@@ -53,31 +85,31 @@ class _SignupScreenState extends State<SignupScreen> {
           'role': _selectedRole,
         });
 
+        // Show success message
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Account created successfully!')),
+          SnackBar(
+            content: Text('Account created successfully!'),
+            backgroundColor: Colors.green,
+          ),
         );
 
-        // Navigate to login screen
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => LoginScreen()),
+        // Wait a short moment for the SnackBar to show
+        await Future.delayed(Duration(milliseconds: 500));
+
+        // Navigate to home/dashboard and remove signup from stack
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (context) => MyApp()),
         );
       } on FirebaseAuthException catch (e) {
-        String errorMsg = 'Signup failed';
-        if (e.code == 'email-already-in-use') {
-          errorMsg = 'Email already in use';
-        } else if (e.code == 'invalid-email') {
-          errorMsg = 'Invalid email address';
-        } else if (e.code == 'weak-password') {
-          errorMsg = 'Password is too weak';
-        }
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(errorMsg)),
-        );
+        _showError(_getFriendlyErrorMessage(e.code));
       } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('An unexpected error occurred')),
-        );
+        _showError("Something went wrong. Please try again.");
+      } finally {
+        if (mounted) {
+          setState(() {
+            _isLoading = false; // Hide spinner
+          });
+        }
       }
     }
   }
@@ -142,8 +174,17 @@ class _SignupScreenState extends State<SignupScreen> {
               ),
               SizedBox(height: 20),
               ElevatedButton(
-                onPressed: _signup,
-                child: Text("Sign Up"),
+                onPressed: _isLoading ? null : _signup,
+                child: _isLoading
+                    ? SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                        ),
+                      )
+                    : Text("Sign Up"),
               ),
             ],
           ),

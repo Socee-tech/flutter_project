@@ -15,6 +15,8 @@ class RetailerApp extends StatelessWidget {
     return MaterialApp(
       title: 'Retailer App',
       theme: ThemeData(primarySwatch: Colors.blue),
+      debugShowCheckedModeBanner: false,
+      // Set the home screen to SuppliersListScreen
       home: SuppliersListScreen(),
     );
   }
@@ -32,7 +34,19 @@ class _SuppliersListScreenState extends State<SuppliersListScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Suppliers')),
+      appBar: AppBar(
+        title: Text('Suppliers'),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.logout),
+            onPressed: () async {
+              await FirebaseAuth.instance.signOut();
+              Navigator.of(context).popUntil((route) => route.isFirst);
+              // Optionally, navigate to your login screen here
+            },
+          ),
+        ],
+      ),
       body: StreamBuilder(
         stream: FirebaseFirestore.instance
             .collection('users')
@@ -53,7 +67,7 @@ class _SuppliersListScreenState extends State<SuppliersListScreen> {
                   icon: Icon(Icons.favorite_border),
                   onPressed: () {
                     followSupplier(
-                      supplier.id,
+                        supplier.id,
                       FirebaseAuth.instance.currentUser!.uid,
                     );
                     ScaffoldMessenger.of(context).showSnackBar(
