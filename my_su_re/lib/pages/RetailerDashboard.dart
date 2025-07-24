@@ -1,48 +1,51 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_core/firebase_core.dart';
+import 'package:my_su_re/utils/helpers.dart';
 
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(); // Make sure firebase_core is initialized
-  runApp(RetailerApp());
-}
-
-class RetailerApp extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Retailer App',
-      theme: ThemeData(primarySwatch: Colors.blue),
-      debugShowCheckedModeBanner: false,
-      // Set the home screen to SuppliersListScreen
-      home: SuppliersListScreen(),
-    );
-  }
-}
 
 // ✅ Stateful Supplier List Screen
-class SuppliersListScreen extends StatefulWidget {
-  const SuppliersListScreen({super.key});
+class RetailerDashboard extends StatefulWidget {
+  const RetailerDashboard({super.key});
 
   @override
-  _SuppliersListScreenState createState() => _SuppliersListScreenState();
+  _RetailerDashboardState createState() => _RetailerDashboardState();
 }
 
-class _SuppliersListScreenState extends State<SuppliersListScreen> {
+class _RetailerDashboardState extends State<RetailerDashboard> {
+  Set<String> _followedSuppliers = {};
+
+  @override
+  void initState() {
+    super.initState();
+    _loadFollowedSuppliers();
+  }
+
+  Future<void> _loadFollowedSuppliers() async {
+    final retailerId = FirebaseAuth.instance.currentUser!.uid;
+    final snapshot = await FirebaseFirestore.instance
+        .collection('followers')
+        .where('followers', arrayContains: retailerId)
+        .get();
+
+    setState(() {
+      _followedSuppliers = snapshot.docs.map((doc) => doc.id).toSet();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Suppliers'),
+        title: const Text('Suppliers'),
         actions: [
           IconButton(
-            icon: Icon(Icons.logout),
+            icon: const Icon(Icons.logout),
             onPressed: () async {
               await FirebaseAuth.instance.signOut();
-              Navigator.of(context).popUntil((route) => route.isFirst);
-              // Optionally, navigate to your login screen here
+              Navigator.of(context).pushReplacementNamed('/login');
+              // Show success message
+              showSuccess(context, 'Logged out successfully');
             },
           ),
         ],
@@ -53,39 +56,89 @@ class _SuppliersListScreenState extends State<SuppliersListScreen> {
             .where('role', isEqualTo: 'supplier')
             .snapshots(),
         builder: (context, snapshot) {
-          if (!snapshot.hasData) return Center(child: CircularProgressIndicator());
+          if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
 
           final suppliers = snapshot.data!.docs;
 
-          return ListView.builder(
+          return GridView.builder(
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              crossAxisSpacing: 4.0,
+              mainAxisSpacing: 4.0,
+            ),
             itemCount: suppliers.length,
             itemBuilder: (context, index) {
               var supplier = suppliers[index];
-              return ListTile(
-                title: Text(supplier['name']),
-                trailing: IconButton(
-                  icon: Icon(Icons.favorite_border),
-                  onPressed: () {
-                    followSupplier(
-                        supplier.id,
-                      FirebaseAuth.instance.currentUser!.uid,
-                    );
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Followed ${supplier['name']}')),
+              return Card(
+                elevation: 2,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: InkWell(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => SupplierProductsScreen(
+                          supplierId: supplier.id,
+                          supplierName: supplier['name'],
+                        ),
+                      ),
                     );
                   },
-                ),
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => SupplierProductsScreen(
-                        supplierId: supplier.id,
-                        supplierName: supplier['name'],
+                  child: Column(
+                    children: [
+                      Expanded(
+                        child: ClipRRect(
+                          borderRadius: const BorderRadius.only(
+                            topLeft: Radius.circular(12),
+                            topRight: Radius.circular(12),
+                          ),
+                          child: Image.network(
+                            "https://picsum.photos/seed/${supplier.id}/200/200",
+                            fit: BoxFit.cover,
+                          ),
+                        ),
                       ),
-                    ),
-                  );
-                },
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Column(
+                          children: [
+                            Text(
+                              supplier['name'],
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            _followedSuppliers.contains(supplier.id)
+                                ? ElevatedButton(
+                                    onPressed: () {},
+                                    child: const Text("Following"),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.grey,
+                                    ),
+                                  )
+                                : ElevatedButton(
+                                    onPressed: () {
+                                      followSupplier(
+                                        supplier.id,
+                                        FirebaseAuth.instance.currentUser!.uid,
+                                        context,
+                                      );
+                                      setState(() {
+                                        _followedSuppliers.add(supplier.id);
+                                      });
+                                      showSuccess(context, 'Followed ${supplier['name']}');
+                                    },
+                                    child: const Text("Follow"),
+                                  ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               );
             },
           );
@@ -110,39 +163,43 @@ class SupplierProductsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text('$supplierName\'s Products')),
-      body: StreamBuilder(
+      body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance
             .collection('products')
-            .where('supplierId', isEqualTo: supplierId)
+            .doc(supplierId)
+            .collection('items')
             .snapshots(),
         builder: (context, snapshot) {
-          if (!snapshot.hasData) return Center(child: CircularProgressIndicator());
+          if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
 
           final products = snapshot.data!.docs;
 
           if (products.isEmpty) {
-            return Center(child: Text('No products found'));
+            return const Center(child: Text('No products found'));
           }
 
           return ListView.builder(
             itemCount: products.length,
             itemBuilder: (context, index) {
               var product = products[index];
+              final data = product.data() as Map<String, dynamic>;
               return Card(
-                margin: EdgeInsets.all(8),
+                margin: const EdgeInsets.all(8),
                 child: ListTile(
-                  leading: Image.network(
-                    product['imageUrl'],
+                  leading: data['imageUrl'] != null
+                      ? Image.network(
+                    data['imageUrl'],
                     width: 60,
                     height: 60,
                     fit: BoxFit.cover,
                     errorBuilder: (context, error, stackTrace) =>
-                        Icon(Icons.broken_image),
-                  ),
-                  title: Text(product['name']),
-                  subtitle: Text('\$${product['price']}'),
+                        const Icon(Icons.broken_image),
+                  )
+                  : const Icon(Icons.image, size: 60),
+                  title: Text(data['name'] ?? 'No name'),
+                  subtitle: Text('Ksh.${data['price'] ?? '0.00'}'),
                   trailing: IconButton(
-                    icon: Icon(Icons.shopping_cart),
+                    icon: const Icon(Icons.shopping_cart),
                     onPressed: () {
                       placeOrder(product.id, supplierId, context);
                     },
@@ -157,15 +214,21 @@ class SupplierProductsScreen extends StatelessWidget {
   }
 }
 
-// ✅ Function to follow a supplier
-void followSupplier(String supplierId, String retailerId) async {
-  final docRef =
-      FirebaseFirestore.instance.collection('followers').doc(supplierId);
+void followSupplier(String supplierId, String retailerId, BuildContext context) async {
+  try {
+    final docRef =
+        FirebaseFirestore.instance.collection('followers').doc(supplierId);
 
-  await docRef.set({
-    'followers': FieldValue.arrayUnion([retailerId])
-  }, SetOptions(merge: true));
+    await docRef.set({
+      'followers': FieldValue.arrayUnion([retailerId])
+    }, SetOptions(merge: true));
+
+    showSuccess(context, 'Successfully followed supplier!');
+  } catch (e) {
+    showError(context, 'Failed ${e.toString()}');
+  }
 }
+
 
 // ✅ Function to place an order
 void placeOrder(String productId, String supplierId, BuildContext context) async {
@@ -179,7 +242,5 @@ void placeOrder(String productId, String supplierId, BuildContext context) async
     'timestamp': FieldValue.serverTimestamp(),
   });
 
-  ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(content: Text('Order placed successfully!')),
-  );
+  showSuccess(context, 'Order placed successfully!');
 }

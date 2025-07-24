@@ -1,62 +1,109 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:my_su_re/locator.dart';
+import 'package:my_su_re/pages/signup.dart';
+import 'package:my_su_re/services/auth_service.dart';
+import 'package:my_su_re/services/navigation_service.dart';
+import 'package:my_su_re/services/role_service.dart';
 import 'firebase_options.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 
-import 'pages/login.dart';
-import 'pages/supplierDashboard.dart';
-import 'pages/retailerDashboard.dart';
+import 'package:my_su_re/pages/login.dart';
+import 'package:my_su_re/pages/supplierDashboard.dart';
+import 'package:my_su_re/pages/retailerDashboard.dart';
+import 'package:my_su_re/splashScreen.dart';
+import 'package:my_su_re/pages/home.dart';
+import 'package:my_su_re/pages/forgot_password.dart';
+import 'package:my_su_re/theme.dart';
+import 'package:my_su_re/pages/follower_list_screen.dart';
+import 'package:provider/provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-
-  runApp(MyApp());
+  setupLocator();
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+  // Main entry point of the app
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Retailer/Supplier App',
-      debugShowCheckedModeBanner: false,
-      home: AuthGate(),
-    );
-  }
-}
+    return MultiProvider(
+      providers: [
+        Provider<AuthService>(
+          create: (_) => AuthService(),
+        ),
+      ],
+      child: MaterialApp(
+        title: 'Retailer/Supplier App',
+        debugShowCheckedModeBanner: false,
+        theme: appTheme,
+        navigatorKey: locator<NavigationService>().navigatorKey,
+        home: Consumer<AuthService>(
+          builder: (context, authService, child) {
+            return StreamBuilder<User?>(
+              stream: authService.authStateChanges,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Scaffold(
+                    body: Center(
+                      child: CircularProgressIndicator(),
+                    ),
+                  );
+                }
 
-/// Widget that checks auth state and navigates to appropriate screen
-class AuthGate extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return StreamBuilder<User?>(
-      stream: FirebaseAuth.instance.authStateChanges(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting)
-          return Center(child: CircularProgressIndicator());
+                if (!snapshot.hasData) {
+                  return const WelcomeSplashScreen();
+                }
 
-        if (!snapshot.hasData) {
-          // Not logged in
-          return LoginScreen();
-        }
+                return FutureBuilder<String?>(
+                  future: locator<RoleService>().getRole(),
+                  builder: (context, roleSnapshot) {
+                    if (roleSnapshot.connectionState == ConnectionState.waiting) {
+                      return const Scaffold(
+                        body: Center(
+                          child: CircularProgressIndicator(),
+                        ),
+                      );
+                    }
 
-        // Logged in
-        final user = snapshot.data!;
-        return FutureBuilder<DocumentSnapshot>(
-          future: FirebaseFirestore.instance.collection('users').doc(user.uid).get(),
-          builder: (context, snapshot) {
-            if (!snapshot.hasData) return Center(child: CircularProgressIndicator());
+                    if (roleSnapshot.hasError || !roleSnapshot.hasData) {
+                      // Handle error or user not found in Firestore
+                      return const LoginScreen();
+                    }
 
-            final role = snapshot.data!.get('role');
-            if (role == 'retailer') return RetailerApp();
-            if (role == 'supplier') return SupplierDashboard(supplierId: user.uid);
-            return Center(child: Text('Unknown role'));
+                    final role = roleSnapshot.data;
+                    if (role == 'retailer') {
+                      return const RetailerDashboard();
+                    } else if (role == 'supplier') {
+                      return SupplierDashboard(
+                          supplierId: authService.currentUser!.uid);
+                    }
+
+                    // Handle unknown role
+                    return const LoginScreen();
+                  },
+                );
+              },
+            );
           },
-        );
-      },
+        ),
+        routes: {
+          '/login': (context) => const LoginScreen(),
+          '/signup': (context) => const SignupScreen(),
+          '/supplierDashboard': (context) => SupplierDashboard(
+              supplierId: context.read<AuthService>().currentUser?.uid ?? ''),
+          '/retailerDashboard': (context) => const RetailerDashboard(),
+          '/home': (context) => const HomeScreen(),
+          '/forgotPassword': (context) => const ForgotPasswordScreen(),
+          '/followerList': (context) => FollowerListScreen(
+              supplierId: context.read<AuthService>().currentUser?.uid ?? ''),
+        },
+      ),
     );
   }
 }
