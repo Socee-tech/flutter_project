@@ -1,16 +1,14 @@
-# my_su_re
+# MY-SU-RE
+this is a project about supplier and retailers, it enables breach the gap the every supplier and retailer encounters in there daily operation.
 
-A new Flutter project.
+This app aims at, connecting suppliers and retailers to make their life easier.
 
-## Getting Started
+for the supplier he or she can be able to add his or her products, their description and price, the supplier can also be able to see the retailers who are following him or her.
 
-This project is a starting point for a Flutter application.
+For the retailers they can be able to see the list of suppliers that, are available and also view their products, description and price.
 
-A few resources to get you started if this is your first Flutter project:
+The retailers can also be able to place an order to the supplier.
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+The project is life in this web app.( I have deployed it on vercel)
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+https://flutter-project-vsbf.vercel.app/
