@@ -7,7 +7,6 @@ import 'dart:io';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:my_su_re/utils/helpers.dart';
 import 'package:my_su_re/pages/follower_list_screen.dart';
-import 'package:my_su_re/services/auth_service.dart';
 
 class SupplierDashboard extends StatefulWidget {
   final String supplierId;
