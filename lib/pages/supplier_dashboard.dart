@@ -212,34 +212,34 @@ class _SupplierDashboardState extends State<SupplierDashboard> {
                             ),
                       ),
                       const SizedBox(height: 8),
-                      Row(
-                        children: [
-                          _buildStatCard(
-                            context,
-                            'Products',
-                            Icons.inventory,
-                            Colors.blue,
-                          ),
-                          const SizedBox(width: 8),
-                          InkWell(
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => FollowerListScreen(supplierId: widget.supplierId),
-                                ),
-                              );
-                            },
-                            child: _buildStatCard(
-                              context,
-                              'Followers',
-                              Icons.people,
-                              Colors.green,
-                              value: _followers.length,
-                            ),
-                          ),
-                        ],
-                      ),
+                      // Row(
+                      //   children: [
+                      //     _buildStatCard(
+                      //       context,
+                      //       'Products',
+                      //       Icons.inventory,
+                      //       Colors.blue,
+                      //     ),
+                      //     const SizedBox(width: 8),
+                      //     InkWell(
+                      //       onTap: () {
+                      //         Navigator.push(
+                      //           context,
+                      //           MaterialPageRoute(
+                      //             builder: (context) => FollowerListScreen(supplierId: widget.supplierId),
+                      //           ),
+                      //         );
+                      //       },
+                      //       child: _buildStatCard(
+                      //         context,
+                      //         'Followers',
+                      //         Icons.people,
+                      //         Colors.green,
+                      //         value: _followers.length,
+                      //       ),
+                      //     ),
+                      //   ],
+                      // ),
                     ],
                   ),
                 );
@@ -272,33 +272,33 @@ class _SupplierDashboardState extends State<SupplierDashboard> {
                         key: _formKey,
                         child: Column(
                           children: [
-                            GestureDetector(
-                              onTap: () async {
-                                try {
-                                  final pickedFile = await picker.pickImage(
-                                      source: ImageSource.gallery);
-                                  setState(() {
-                                    if (pickedFile != null) {
-                                      _image = File(pickedFile.path);
-                                    }
-                                  });
-                                } catch (e) {
-                                  showError(context, "Could not pick image");
-                                }
-                              },
-                              child: Container(
-                                height: 150,
-                                width: double.infinity,
-                                decoration: BoxDecoration(
-                                  border: Border.all(color: Colors.grey),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: _image != null
-                                    ? Image.file(_image!, fit: BoxFit.cover)
-                                    : const Icon(Icons.add_a_photo,
-                                        color: Colors.grey),
-                              ),
-                            ),
+                            // GestureDetector(
+                            //   onTap: () async {
+                            //     try {
+                            //       final pickedFile = await picker.pickImage(
+                            //           source: ImageSource.gallery);
+                            //       setState(() {
+                            //         if (pickedFile != null) {
+                            //           _image = File(pickedFile.path);
+                            //         }
+                            //       });
+                            //     } catch (e) {
+                            //       showError(context, "Could not pick image");
+                            //     }
+                            //   },
+                            //   child: Container(
+                            //     height: 150,
+                            //     width: double.infinity,
+                            //     decoration: BoxDecoration(
+                            //       border: Border.all(color: Colors.grey),
+                            //       borderRadius: BorderRadius.circular(8),
+                            //     ),
+                            //     child: _image != null
+                            //         ? Image.file(_image!, fit: BoxFit.cover)
+                            //         : const Icon(Icons.add_a_photo,
+                            //             color: Colors.grey),
+                            //   ),
+                            // ),
                             const SizedBox(height: 16),
                             TextFormField(
                               controller: _nameController,
