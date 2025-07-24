@@ -9,9 +9,9 @@ import 'firebase_options.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 import 'package:my_su_re/pages/login.dart';
-import 'package:my_su_re/pages/supplierDashboard.dart';
-import 'package:my_su_re/pages/retailerDashboard.dart';
-import 'package:my_su_re/splashScreen.dart';
+import 'package:my_su_re/pages/supplier_dashboard.dart';
+import 'package:my_su_re/pages/retailer_dashboard.dart';
+import 'package:my_su_re/splash_screen.dart';
 import 'package:my_su_re/pages/home.dart';
 import 'package:my_su_re/pages/forgot_password.dart';
 import 'package:my_su_re/theme.dart';
