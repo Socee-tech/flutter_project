@@ -90,6 +90,8 @@ class _SupplierDashboardState extends State<SupplierDashboard> {
       } else {
         await FirebaseFirestore.instance
             .collection('products')
+            .doc(widget.supplierId) // supplier's UID
+            .collection('items')
             .doc(_editingProductId)
             .update(data);
       }
@@ -212,34 +214,42 @@ class _SupplierDashboardState extends State<SupplierDashboard> {
                             ),
                       ),
                       const SizedBox(height: 8),
-                      // Row(
-                      //   children: [
-                      //     _buildStatCard(
-                      //       context,
-                      //       'Products',
-                      //       Icons.inventory,
-                      //       Colors.blue,
-                      //     ),
-                      //     const SizedBox(width: 8),
-                      //     InkWell(
-                      //       onTap: () {
-                      //         Navigator.push(
-                      //           context,
-                      //           MaterialPageRoute(
-                      //             builder: (context) => FollowerListScreen(supplierId: widget.supplierId),
-                      //           ),
-                      //         );
-                      //       },
-                      //       child: _buildStatCard(
-                      //         context,
-                      //         'Followers',
-                      //         Icons.people,
-                      //         Colors.green,
-                      //         value: _followers.length,
-                      //       ),
-                      //     ),
-                      //   ],
-                      // ),
+                       Row(
+                        children: [
+                      _buildStatCard(
+                            context,
+                            'Products',
+                            Icons.inventory,
+                            Colors.blue,
+                          ),
+                          const SizedBox(width: 8),
+                          Material(
+                            color: Colors.transparent,
+                            child: SizedBox(
+                              width: 150,
+                              height: 58,
+                              child: InkWell(
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => FollowerListScreen(supplierId: widget.supplierId),
+                                    ),
+                                  );
+                                },
+                                child: _buildStatCard(
+                                  context,
+                                  'Followers',
+                                  Icons.people,
+                                  Colors.green,
+                                  value: _followers.length,
+                                ),
+                              ),
+                            ),
+                          )
+                        ],
+                      ),
+                      const SizedBox(height: 8),
                     ],
                   ),
                 );
@@ -259,9 +269,7 @@ class _SupplierDashboardState extends State<SupplierDashboard> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Row(
-                        children: [
-                          Text(
+                      Text(
                         _editingProductId == null
                             ? "Add New Product"
                             : "Edit Product",
@@ -269,34 +277,13 @@ class _SupplierDashboardState extends State<SupplierDashboard> {
                               fontWeight: FontWeight.bold,
                             ),
                       ),
-                      const SizedBox(width: 8),
-                      _buildStatCard(
-                            context,
-                            'Products',
-                            Icons.inventory,
-                            Colors.blue,
-                          ),
-                          const SizedBox(width: 8),
-                          InkWell(
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => FollowerListScreen(supplierId: widget.supplierId),
-                                ),
-                              );
-                            },
-                            child: _buildStatCard(
-                              context,
-                              'Followers',
-                              Icons.people,
-                              Colors.green,
-                              value: _followers.length,
-                            ),
-                          ),
-                        ],
-                      ),
                       const SizedBox(height: 8),
+                      const Text(
+                        "Fill in the details below to add or edit a product.",
+                        style: TextStyle(color: Colors.grey),
+                      ),
+                      const SizedBox(height: 16),
+                      
                       Form(
                         key: _formKey,
                         child: Column(
