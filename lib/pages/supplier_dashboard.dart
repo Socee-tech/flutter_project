@@ -214,12 +214,12 @@ class _SupplierDashboardState extends State<SupplierDashboard> {
                       const SizedBox(height: 8),
                       // Row(
                       //   children: [
-                      //     _buildStatCard(
-                      //       context,
-                      //       'Products',
-                      //       Icons.inventory,
-                      //       Colors.blue,
-                      //     ),
+                          // _buildStatCard(
+                          //   context,
+                          //   'Products',
+                          //   Icons.inventory,
+                          //   Colors.blue,
+                          // ),
                       //     const SizedBox(width: 8),
                       //     InkWell(
                       //       onTap: () {
@@ -259,7 +259,9 @@ class _SupplierDashboardState extends State<SupplierDashboard> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
+                      Row(
+                        children: [
+                          Text(
                         _editingProductId == null
                             ? "Add New Product"
                             : "Edit Product",
@@ -267,7 +269,16 @@ class _SupplierDashboardState extends State<SupplierDashboard> {
                               fontWeight: FontWeight.bold,
                             ),
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(width: 8),
+                      _buildStatCard(
+                            context,
+                            'Products',
+                            Icons.inventory,
+                            Colors.blue,
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
                       Form(
                         key: _formKey,
                         child: Column(
