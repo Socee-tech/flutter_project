@@ -50,7 +50,17 @@ class _RetailerDashboardState extends State<RetailerDashboard> {
           ),
         ],
       ),
-      body: StreamBuilder(
+      body: Stack(
+        children: [
+          Container(
+            decoration: const BoxDecoration(
+              image: DecorationImage(
+                image: AssetImage('assets/images/flutter_bg.jpg'),
+                fit: BoxFit.cover,
+              ),
+            ),
+          ),
+      StreamBuilder(
         stream: FirebaseFirestore.instance
             .collection('users')
             .where('role', isEqualTo: 'supplier')
@@ -144,6 +154,8 @@ class _RetailerDashboardState extends State<RetailerDashboard> {
           );
         },
       ),
+        ]
+      )
     );
   }
 }
@@ -163,7 +175,17 @@ class SupplierProductsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text('$supplierName\'s Products')),
-      body: StreamBuilder<QuerySnapshot>(
+      body: Stack(
+        children: [
+          Container(
+            decoration: const BoxDecoration(
+              image: DecorationImage(
+                image: AssetImage('assets/images/flutter_bg.jpg'),
+                fit: BoxFit.cover,
+              ),
+            ),
+          ),
+      StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance
             .collection('products')
             .doc(supplierId)
@@ -175,7 +197,7 @@ class SupplierProductsScreen extends StatelessWidget {
           final products = snapshot.data!.docs;
 
           if (products.isEmpty) {
-            return const Center(child: Text('No products found'));
+            return const Center(child: Text('No products found', style: TextStyle(fontSize: 16, color: Colors.white)));
           }
 
           return ListView.builder(
@@ -210,6 +232,8 @@ class SupplierProductsScreen extends StatelessWidget {
           );
         },
       ),
+        ]
+      )
     );
   }
 }

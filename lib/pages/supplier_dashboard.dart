@@ -165,7 +165,18 @@ class _SupplierDashboardState extends State<SupplierDashboard> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: CustomScrollView(
+      
+      body: Stack(
+        children: [
+          Container(
+            decoration: const BoxDecoration(
+              image: DecorationImage(
+                image: AssetImage('assets/images/flutter_bg.jpg'),
+                fit: BoxFit.cover,
+              ),
+            ),
+          ),
+      CustomScrollView(
         slivers: [
           SliverAppBar(
             expandedHeight: 120,
@@ -327,33 +338,6 @@ class _SupplierDashboardState extends State<SupplierDashboard> {
                         key: _formKey,
                         child: Column(
                           children: [
-                            // GestureDetector(
-                            //   onTap: () async {
-                            //     try {
-                            //       final pickedFile = await picker.pickImage(
-                            //           source: ImageSource.gallery);
-                            //       setState(() {
-                            //         if (pickedFile != null) {
-                            //           _image = File(pickedFile.path);
-                            //         }
-                            //       });
-                            //     } catch (e) {
-                            //       showError(context, "Could not pick image");
-                            //     }
-                            //   },
-                            //   child: Container(
-                            //     height: 150,
-                            //     width: double.infinity,
-                            //     decoration: BoxDecoration(
-                            //       border: Border.all(color: Colors.grey),
-                            //       borderRadius: BorderRadius.circular(8),
-                            //     ),
-                            //     child: _image != null
-                            //         ? Image.file(_image!, fit: BoxFit.cover)
-                            //         : const Icon(Icons.add_a_photo,
-                            //             color: Colors.grey),
-                            //   ),
-                            // ),
                             const SizedBox(height: 16),
                             TextFormField(
                               controller: _nameController,
@@ -587,6 +571,8 @@ class _SupplierDashboardState extends State<SupplierDashboard> {
           ),
         ],
       ),
+        ],
+    )
     );
   }
   

@@ -7,7 +7,6 @@ import 'package:my_su_re/services/navigation_service.dart';
 import 'package:my_su_re/services/role_service.dart';
 import 'firebase_options.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-
 import 'package:my_su_re/pages/login.dart';
 import 'package:my_su_re/pages/supplier_dashboard.dart';
 import 'package:my_su_re/pages/retailer_dashboard.dart';
@@ -75,15 +74,6 @@ class MyApp extends StatelessWidget {
                       // Handle error or user not found in Firestore
                       return const LoginScreen();
                     }
-
-                    final role = roleSnapshot.data;
-                    if (role == 'retailer') {
-                      return const RetailerDashboard();
-                    } else if (role == 'supplier') {
-                      return SupplierDashboard(
-                          supplierId: authService.currentUser!.uid);
-                    }
-
                     // Handle unknown role
                     return const LoginScreen();
                   },

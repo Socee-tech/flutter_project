@@ -1,3 +1,5 @@
+// ignore_for_file: deprecated_member_use
+
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -87,20 +89,8 @@ class _SignupScreenState extends State<SignupScreen> {
             Container(
               decoration: const BoxDecoration(
                 image: DecorationImage(
-                  image: AssetImage('assets/images/ChatGPT Image Jul 22, 2025, 12_56_02 PM.png'),
+                  image: AssetImage('assets/images/flutter_bg.jpg'),
                   fit: BoxFit.cover,
-                ),
-              ),
-            ),
-            Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    Colors.blue.shade800.withOpacity(0.8),
-                    Colors.blue.shade600.withOpacity(0.8),
-                  ],
                 ),
               ),
             ),

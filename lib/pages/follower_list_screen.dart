@@ -12,7 +12,17 @@ class FollowerListScreen extends StatelessWidget {
       appBar: AppBar(
         title: const Text("Followers"),
       ),
-      body: StreamBuilder<DocumentSnapshot>(
+      body: Stack(
+        children: [
+          Container(
+            decoration: const BoxDecoration(
+              image: DecorationImage(
+                image: AssetImage('assets/images/flutter_bg.jpg'),
+                fit: BoxFit.cover,
+              ),
+            ),
+          ),
+      StreamBuilder<DocumentSnapshot>(
         stream: FirebaseFirestore.instance
             .collection('followers')
             .doc(supplierId)
@@ -22,7 +32,7 @@ class FollowerListScreen extends StatelessWidget {
             return const Center(child: CircularProgressIndicator());
           }
           if (!snapshot.hasData || !snapshot.data!.exists) {
-            return const Center(child: Text("No followers found."));
+            return const Center(child: Text("No followers found.", style: TextStyle(fontSize: 16, color: Colors.white)));
           }
 
           var followerIds = List<String>.from(snapshot.data!['followers']);
@@ -43,13 +53,13 @@ class FollowerListScreen extends StatelessWidget {
                   if (userSnapshot.connectionState == ConnectionState.waiting) {
                     return const ListTile(
                       leading: CircleAvatar(),
-                      title: Text("Loading..."),
+                      title: Text("Loading...", style: TextStyle(color: Colors.white)),
                     );
                   }
                   if (!userSnapshot.hasData || !userSnapshot.data!.exists) {
                     return const ListTile(
                       leading: CircleAvatar(),
-                      title: Text("Unknown User"),
+                      title: Text("Unknown User", style: TextStyle(color: Colors.white)),
                     );
                   }
 
@@ -58,8 +68,8 @@ class FollowerListScreen extends StatelessWidget {
                     leading: CircleAvatar(
                       child: Text(user['name'][0]),
                     ),
-                    title: Text(user['name']),
-                    subtitle: Text(user['email']),
+                    title: Text(user['name'], style: const TextStyle(color: Colors.white)),
+                    subtitle: Text(user['email'], style: const TextStyle(color: Colors.white70)),
                   );
                 },
               );
@@ -67,6 +77,8 @@ class FollowerListScreen extends StatelessWidget {
           );
         },
       ),
+        ]
+      )
     );
   }
 }

@@ -12,7 +12,17 @@ class OrdersScreen extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Your Orders'),
       ),
-      body: StreamBuilder<QuerySnapshot>(
+      body: Stack(
+        children: [
+          Container(
+            decoration: const BoxDecoration(
+              image: DecorationImage(
+                image: AssetImage('assets/images/flutter_bg.jpg'),
+                fit: BoxFit.cover,
+              ),
+            ),
+          ),
+      StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance
             .collection('orders')
             .where('supplierId', isEqualTo: supplierId)
@@ -48,6 +58,8 @@ class OrdersScreen extends StatelessWidget {
           );
         },
       ),
+        ]
+      )
     );
   }
 }

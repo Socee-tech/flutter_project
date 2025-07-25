@@ -76,22 +76,8 @@ class _LoginScreenState extends State<LoginScreen> {
           Container(
             decoration: const BoxDecoration(
               image: DecorationImage(
-                image: AssetImage('assets/images/ChatGPT Image Jul 22, 2025, 12_56_02 PM.png'),
+                image: AssetImage('assets/images/flutter_bg.jpg'),
                 fit: BoxFit.cover,
-              ),
-            ),
-          ),
-          Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  // ignore: deprecated_member_use
-                  Colors.blue.shade800.withOpacity(0.8),
-                  // ignore: deprecated_member_use
-                  Colors.blue.shade600.withOpacity(0.8),
-                ],
               ),
             ),
           ),
