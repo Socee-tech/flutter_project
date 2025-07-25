@@ -7,6 +7,7 @@ import 'dart:io';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:my_su_re/utils/helpers.dart';
 import 'package:my_su_re/pages/follower_list_screen.dart';
+import 'package:my_su_re/pages/order_screen.dart';
 
 class SupplierDashboard extends StatefulWidget {
   final String supplierId;
@@ -81,7 +82,9 @@ class _SupplierDashboardState extends State<SupplierDashboard> {
         'imageUrl': imageUrl,
       };
 
-      if (_editingProductId == null) {
+      final isUpdating = _editingProductId != null;
+
+      if (!isUpdating) {
         await FirebaseFirestore.instance
         .collection('products')
         .doc(widget.supplierId) // supplier's UID
@@ -97,7 +100,7 @@ class _SupplierDashboardState extends State<SupplierDashboard> {
       }
 
       _resetForm();
-      showSuccess(context, "Product ${_editingProductId == null ? 'added' : 'updated'}");
+      showSuccess(context, "Product ${isUpdating ? 'updated' : 'added'} successfully!");
     } catch (e) {
       showError(context, "Operation failed. Please try again.");
     } finally {
@@ -127,11 +130,21 @@ class _SupplierDashboardState extends State<SupplierDashboard> {
     });
   }
 
-  Future<void> _deleteProduct(String id) async {
+  Future<void> _deleteProduct({
+  required String supplierId,
+  required String productId,
+  }) async {
     try {
-      await FirebaseFirestore.instance.collection('products').doc(id).delete();
+      await FirebaseFirestore.instance
+          .collection('products')
+          .doc(supplierId)
+          .collection('items')
+          .doc(productId)
+          .delete();
+
       showSuccess(context, 'Product deleted');
-    } catch (e) {
+    } catch (e, st) {
+      debugPrint('Delete failed: $e\n$st');
       showError(context, 'Failed to delete product');
     }
   }
@@ -216,39 +229,65 @@ class _SupplierDashboardState extends State<SupplierDashboard> {
                       const SizedBox(height: 8),
                        Row(
                         children: [
-                      _buildStatCard(
-                            context,
-                            'Products',
-                            Icons.inventory,
-                            Colors.blue,
+                          Expanded(
+                            child: _buildStatCard(
+                              context,
+                              'Products',
+                              Icons.inventory,
+                              Colors.blue,
+                            ),
                           ),
                           const SizedBox(width: 8),
-                          Material(
-                            color: Colors.transparent,
-                            child: SizedBox(
-                              width: 150,
-                              height: 58,
-                              child: InkWell(
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => FollowerListScreen(supplierId: widget.supplierId),
+                          Expanded(
+                            child: _buildStatCard(
+                              context,
+                              'Followers',
+                              Icons.people,
+                              Colors.green,
+                              value: _followers.length,
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => FollowerListScreen(
+                                      supplierId: widget.supplierId,
                                     ),
-                                  );
-                                },
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          StreamBuilder<QuerySnapshot>(
+                            stream: FirebaseFirestore.instance
+                                .collection('orders')
+                                .where('supplierId', isEqualTo: widget.supplierId)
+                                .snapshots(),
+                            builder: (context, snapshot) {
+                              final orderCount = snapshot.data?.docs.length ?? 0;
+
+                              return Expanded(
                                 child: _buildStatCard(
                                   context,
-                                  'Followers',
-                                  Icons.people,
-                                  Colors.green,
-                                  value: _followers.length,
+                                  'Orders',
+                                  Icons.shopping_cart,
+                                  Colors.orange,
+                                  value: orderCount,
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => OrdersScreen(supplierId: widget.supplierId),
+                                      ),
+                                    );
+                                  },
                                 ),
-                              ),
-                            ),
+                              );
+                            },
                           )
                         ],
                       ),
+
                       const SizedBox(height: 8),
                     ],
                   ),
@@ -428,6 +467,7 @@ class _SupplierDashboardState extends State<SupplierDashboard> {
                   .orderBy('createdAt', descending: true)
                   .snapshots(),
               builder: (context, snapshot) {
+                
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const SliverToBoxAdapter(
                     child: Center(child: CircularProgressIndicator()),
@@ -529,7 +569,10 @@ class _SupplierDashboardState extends State<SupplierDashboard> {
                               IconButton(
                                 icon: const Icon(Icons.delete),
                                 color: Colors.red,
-                                onPressed: () => _deleteProduct(doc.id),
+                                onPressed: () => _deleteProduct(
+                                  supplierId: widget.supplierId,
+                                  productId: doc.id,
+                                ),
                               ),
                             ],
                           ),
@@ -546,20 +589,29 @@ class _SupplierDashboardState extends State<SupplierDashboard> {
       ),
     );
   }
+  
 
   Widget _buildStatCard(
-    BuildContext context,
-    String title,
-    IconData icon,
-    Color color, {
-    int? value,
+  BuildContext context,
+  String title,
+  IconData icon,
+  Color color, {
+  int? value,
+  VoidCallback? onTap,
   }) {
-    return Expanded(
+    return GestureDetector(
+      onTap: onTap,
       child: Container(
         padding: const EdgeInsets.all(8),
+        margin: const EdgeInsets.symmetric(horizontal: 4),
         decoration: BoxDecoration(
           color: color.withAlpha(25),
           borderRadius: BorderRadius.circular(8),
+        ),
+        constraints: const BoxConstraints(
+          minWidth: 150,
+          maxWidth: 200,
+          minHeight: 60,
         ),
         child: Row(
           children: [

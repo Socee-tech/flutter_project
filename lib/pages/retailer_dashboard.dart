@@ -231,16 +231,61 @@ void followSupplier(String supplierId, String retailerId, BuildContext context) 
 
 
 // ✅ Function to place an order
-void placeOrder(String productId, String supplierId, BuildContext context) async {
-  final retailerId = FirebaseAuth.instance.currentUser!.uid;
+Future<void> placeOrder(
+  String productId,
+  String supplierId,
+  BuildContext context,
+) async {
+  try {
+    final retailerId = FirebaseAuth.instance.currentUser!.uid;
 
-  await FirebaseFirestore.instance.collection('orders').add({
-    'productId': productId,
-    'supplierId': supplierId,
-    'retailerId': retailerId,
-    'status': 'pending',
-    'timestamp': FieldValue.serverTimestamp(),
-  });
+    // 1) Get retailer info
+    final retailerSnap = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(retailerId)
+        .get();
+    final retailerData = retailerSnap.data() ?? {};
+    final retailerName = retailerData['name'] ?? 'Unknown';
 
-  showSuccess(context, 'Order placed successfully!');
+    // 2) Get product info (since it’s under products/{supplierId}/items/{productId})
+    final productSnap = await FirebaseFirestore.instance
+        .collection('products')
+        .doc(supplierId)
+        .collection('items')
+        .doc(productId)
+        .get();
+    final productData = productSnap.data() ?? {};
+    final productName  = productData['name'] ?? 'Unnamed product';
+    final productImage = productData['imageUrl'];
+    final productPrice = productData['price'];
+
+    // (Optional) supplier name, if you store it in users
+    final supplierSnap = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(supplierId)
+        .get();
+    final supplierName = supplierSnap.data()?['name'];
+
+    // 3) Write denormalized order
+    await FirebaseFirestore.instance.collection('orders').add({
+      'productId': productId,
+      'productName': productName,
+      'productImage': productImage,
+      'productPrice': productPrice,
+
+      'supplierId': supplierId,
+      'supplierName': supplierName,
+
+      'retailerId': retailerId,
+      'retailerName': retailerName,
+
+      'status': 'pending',
+      'timestamp': FieldValue.serverTimestamp(),
+    });
+
+    showSuccess(context, 'Order placed successfully!');
+  } catch (e, st) {
+    debugPrint('placeOrder failed: $e\n$st');
+    showError(context, 'Failed to place order');
+  }
 }
