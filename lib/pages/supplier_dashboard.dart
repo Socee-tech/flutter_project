@@ -214,12 +214,12 @@ class _SupplierDashboardState extends State<SupplierDashboard> {
                       const SizedBox(height: 8),
                       // Row(
                       //   children: [
-                          // _buildStatCard(
-                          //   context,
-                          //   'Products',
-                          //   Icons.inventory,
-                          //   Colors.blue,
-                          // ),
+                      //     _buildStatCard(
+                      //       context,
+                      //       'Products',
+                      //       Icons.inventory,
+                      //       Colors.blue,
+                      //     ),
                       //     const SizedBox(width: 8),
                       //     InkWell(
                       //       onTap: () {
@@ -275,6 +275,24 @@ class _SupplierDashboardState extends State<SupplierDashboard> {
                             'Products',
                             Icons.inventory,
                             Colors.blue,
+                          ),
+                          const SizedBox(width: 8),
+                          InkWell(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => FollowerListScreen(supplierId: widget.supplierId),
+                                ),
+                              );
+                            },
+                            child: _buildStatCard(
+                              context,
+                              'Followers',
+                              Icons.people,
+                              Colors.green,
+                              value: _followers.length,
+                            ),
                           ),
                         ],
                       ),
