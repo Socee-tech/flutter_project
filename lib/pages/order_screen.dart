@@ -1,11 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-class OrdersScreen extends StatelessWidget {
+class OrdersScreen extends StatefulWidget {
   final String supplierId;
 
   const OrdersScreen({super.key, required this.supplierId});
 
+  @override
+  State<OrdersScreen> createState() => _OrdersScreenState();
+}
+
+class _OrdersScreenState extends State<OrdersScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -22,53 +27,65 @@ class OrdersScreen extends StatelessWidget {
               ),
             ),
           ),
-      StreamBuilder<QuerySnapshot>(
-        stream: FirebaseFirestore.instance
-            .collection('orders')
-            .where('supplierId', isEqualTo: supplierId)
-            .orderBy('timestamp', descending: true)
-            .snapshots(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
+          StreamBuilder<QuerySnapshot>(
+            stream: FirebaseFirestore.instance
+                .collection('orders')
+                .where('supplierId', isEqualTo: widget.supplierId)
+                .orderBy('timestamp', descending: true)
+                .snapshots(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              }
 
-          if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
-          }
+              if (snapshot.hasError) {
+                return Center(child: Text('Error: ${snapshot.error}'));
+              }
 
-          final orders = snapshot.data?.docs ?? [];
+              final orders = snapshot.data?.docs ?? [];
 
-          if (orders.isEmpty) {
-            return const Center(
-              child: Text(
-                'No orders yet.',
-                style: TextStyle(fontSize: 16, color: Colors.grey),
-              ),
-            );
-          }
+              if (orders.isEmpty) {
+                return const Center(
+                  child: Text(
+                    'No orders yet.',
+                    style: TextStyle(fontSize: 16, color: Colors.grey),
+                  ),
+                );
+              }
 
-          return ListView.builder(
-            padding: const EdgeInsets.all(16),
-            itemCount: orders.length,
-            itemBuilder: (context, index) {
-              final data = orders[index].data() as Map<String, dynamic>;
-              return OrderCard(orderData: data);
+              return ListView.builder(
+                padding: const EdgeInsets.all(16),
+                itemCount: orders.length,
+                itemBuilder: (context, index) {
+                  final doc = orders[index];
+                  final data = doc.data() as Map<String, dynamic>;
+                  final orderId = doc.id;
+
+                  return OrderCard(
+                    orderId: orderId,
+                    orderData: data,
+                  );
+                },
+              );
             },
-          );
-        },
+          ),
+        ],
       ),
-        ]
-      )
     );
   }
 }
 
 
+
 class OrderCard extends StatelessWidget {
   final Map<String, dynamic> orderData;
+  final String orderId;
 
-  const OrderCard({super.key, required this.orderData});
+  const OrderCard({
+    super.key,
+    required this.orderData,
+    required this.orderId,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -88,7 +105,7 @@ class OrderCard extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Product Image or placeholder
+            // Product Image
             ClipRRect(
               borderRadius: BorderRadius.circular(8),
               child: productImage != null
@@ -106,7 +123,8 @@ class OrderCard extends StatelessWidget {
                     ),
             ),
             const SizedBox(width: 12),
-            // Order Info
+
+            // Info + Dropdown
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -125,10 +143,41 @@ class OrderCard extends StatelessWidget {
                         ),
                   ),
                   const SizedBox(height: 8),
+
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Flexible(child: _buildStatusChip(status)),
+                      DropdownButton<String>(
+                        value: status,
+                        icon: const Icon(Icons.arrow_drop_down),
+                        style: const TextStyle(color: Colors.black),
+                        underline: Container(height: 0),
+                        onChanged: (String? newStatus) async {
+                          if (newStatus != null && newStatus != status) {
+                            await FirebaseFirestore.instance
+                                .collection('orders')
+                                .doc(orderId)
+                                .update({'status': newStatus});
+                          }
+                        },
+                        items: ['pending', 'shipped', 'cancelled']
+                            .map<DropdownMenuItem<String>>((String value) {
+                          return DropdownMenuItem<String>(
+                            value: value,
+                            child: Text(
+                              value[0].toUpperCase() + value.substring(1),
+                              style: const TextStyle(fontSize: 13),
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 6),
                   Row(
                     children: [
-                      _buildStatusChip(status),
-                      const SizedBox(width: 8),
                       Icon(Icons.access_time, size: 14, color: Colors.grey[500]),
                       const SizedBox(width: 4),
                       Text(
@@ -187,3 +236,4 @@ class OrderCard extends StatelessWidget {
     return "${date.year}/${date.month}/${date.day}";
   }
 }
+

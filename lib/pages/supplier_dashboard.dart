@@ -12,7 +12,7 @@ import 'package:my_su_re/pages/order_screen.dart';
 class SupplierDashboard extends StatefulWidget {
   final String supplierId;
 
-  const SupplierDashboard({Key? key, required this.supplierId}) : super(key: key);
+  const SupplierDashboard({super.key, required this.supplierId});
 
   @override
   State<SupplierDashboard> createState() => _SupplierDashboardState();

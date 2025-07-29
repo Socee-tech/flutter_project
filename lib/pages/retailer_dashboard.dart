@@ -283,7 +283,7 @@ Future<void> placeOrder(
     final productImage = productData['imageUrl'];
     final productPrice = productData['price'];
 
-    // (Optional) supplier name, if you store it in users
+    //supplier name, if you store it in users
     final supplierSnap = await FirebaseFirestore.instance
         .collection('users')
         .doc(supplierId)
