@@ -11,7 +11,6 @@ import 'package:my_su_re/pages/login.dart';
 import 'package:my_su_re/pages/supplier_dashboard.dart';
 import 'package:my_su_re/pages/retailer_dashboard.dart';
 import 'package:my_su_re/splash_screen.dart';
-import 'package:my_su_re/pages/home.dart';
 import 'package:my_su_re/pages/forgot_password.dart';
 import 'package:my_su_re/theme.dart';
 import 'package:my_su_re/pages/follower_list_screen.dart';
@@ -88,7 +87,6 @@ class MyApp extends StatelessWidget {
           '/supplierDashboard': (context) => SupplierDashboard(
               supplierId: context.read<AuthService>().currentUser?.uid ?? ''),
           '/retailerDashboard': (context) => const RetailerDashboard(),
-          '/home': (context) => const HomeScreen(),
           '/forgotPassword': (context) => const ForgotPasswordScreen(),
           '/followerList': (context) => FollowerListScreen(
               supplierId: context.read<AuthService>().currentUser?.uid ?? ''),
