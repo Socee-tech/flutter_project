@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:my_su_re/utils/helpers.dart';
+import 'package:my_su_re/pages/orders_page.dart';
 
 
 // ✅ Stateful Supplier List Screen
@@ -39,6 +40,19 @@ class _RetailerDashboardState extends State<RetailerDashboard> {
       appBar: AppBar(
         title: const Text('Suppliers'),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.shopping_cart),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => OrdersPage(
+                    retailerId: FirebaseAuth.instance.currentUser!.uid,
+                  ),
+                ),
+              );
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.logout),
             onPressed: () async {
